@@ -1,0 +1,67 @@
+import nltk
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import pandas as pd
+from matplotlib import pyplot as plt
+import matplotlib
+from datetime import datetime
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
+sid = SentimentIntensityAnalyzer()
+
+# Get the csv file
+df = pd.read_csv('reuters_data_edit.csv')
+
+# Convert Publish Date Object to Datetime Object
+df['article_publish_date'] = pd.to_datetime(df['article_publish_date'],  utc=True)
+# Convert back to String?
+df['day'] = df['article_publish_date'].apply(lambda dt: datetime(dt.year, dt.month, 1).strftime('%d-%m-%Y'))
+
+# Only show first 20 rows
+df = df.head(20)
+
+# Configure the first stock
+stock1 = 'A'
+stock_a = df.loc[df['stock'] == stock1]
+stock_a_header = stock_a['raw_header']
+
+# Configure the second stock
+stock2 = 'A'
+stock_b = df.loc[df['stock'] == stock2]
+stock_b_header = stock_b['raw_header']
+
+# Get the compound scores of the two stocks
+scores = []
+for a in stock_a_header:
+    score = sid.polarity_scores(a)['compound']
+    scores.append(score)
+
+scores_b = []
+for b in stock_b_header:
+    score = sid.polarity_scores(b)['compound']
+    scores_b.append(score)
+
+
+#print(df.loc[df['Unnamed: 0'] == 3950])
+#year_a = df.iloc[0:39].article_publish_date.dt.year
+#print(df.iloc[0:39].article_publish_date.dt.year)
+#print(type(df.iloc[111].article_publish_date))
+
+# Convert datetime objects to Matplotlib dates
+dates_stock_a = matplotlib.dates.date2num(stock_a.article_publish_date)
+dates_stock_b = matplotlib.dates.date2num(stock_b.article_publish_date)
+
+# Plot the graph
+plt.xlabel('Day')
+plt.ylabel('Compound Score')
+plt.plot(stock_a['day'], scores, label=stock1)
+#plt.plot(dates_stock_a, scores, label=stock1)
+#plt.plot(dates_stock_b, scores_b, label=stock2)
+plt.legend()
+plt.show()
+
+
+
+
+
+
